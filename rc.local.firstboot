@@ -17,3 +17,4 @@ wget -O /tmp/VBoxGuestAdditions.iso $VBOXISO
 mkdir /tmp/VBoxGuestAdditions
 mount -o loop /tmp/VBoxGuestAdditions.iso /tmp/VBoxGuestAdditions
 cd /tmp/VBoxGuestAdditions
+/tmp/VBoxGuestAdditions/VBoxLinuxAdditions.run
