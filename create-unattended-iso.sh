@@ -115,12 +115,13 @@ fi
 
 # ask the user questions about his/her preferences
 read -ep " please enter your preferred timezone: " -i "${timezone}" timezone
-read -ep " please enter your preferred username: " -i "netson" username
+read -ep " please enter your preferred username: " -i "user" username
 read -sp " please enter your preferred password: " password
 printf "\n"
 read -sp " confirm your preferred password: " password2
 printf "\n"
 read -ep " Make ISO bootable via USB: " -i "yes" bootable
+read -ep " Install virtualbox guest additions: " -i "yes" vbox
 
 # check if the passwords match to prevent headaches
 if [[ "$password" != "$password2" ]]; then
@@ -199,14 +200,15 @@ echo en > $tmp/iso_new/isolinux/lang
 #taken from https://github.com/fries/prepare-ubuntu-unattended-install-iso/blob/master/make.sh
 sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' $tmp/iso_new/isolinux/isolinux.cfg
 
+if [[ $vbox == "yes" ]] || [[ $bootable == "y" ]]; then
 
-# set late command
-#adding first boot script
-#   late_command="in-target apt-get install -y wget;\
-#   in-target wget --no-check-certificate -O /etc/rc.local.firstboot https://github.com/netson/ubuntu-unattended/raw/master/start.sh ;\
-#     in-target chmod +x /home/$username/start.sh ;"
-
-
+	# set late command
+	#adding first boot script to enable virtualbox guest additions
+	late_command="in-target wget --no-check-certificate -O /etc/rc.local.firstboot https://raw.githubusercontent.com/donaldsteele/ubuntu-unattended/master/rc.local.firstboot ;\
+	in-target chmod +x /etc/rc.local.firstboot ;\ 
+	in-target mv /etc/rc.local /etc/rc.local.orig;\ 
+	in-target ln -s /etc/rc.local /etc/rc.local.firstboot;"
+fi
 
 # copy the netson seed file to the iso
 cp -rT $tmp/$seed_file $tmp/iso_new/preseed/$seed_file
@@ -262,6 +264,8 @@ echo " your password is: $password"
 echo " your hostname is: $hostname"
 echo " your timezone is: $timezone"
 echo
+echo " if you would like to create an ovh file , execute makevm.sh"
+echo 
 
 # unset vars
 unset username
