@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "Updating apt " >> /tmp/firstboot.log
+apt-get update
+echo "Running Updates " >> /tmp/firstboot.log
+apt-get -y upgrade
+
+# install software
+echo "installing software " >> /tmp/firstboot.log
+apt-get install -y build-essential openssh-server php-cli
+
