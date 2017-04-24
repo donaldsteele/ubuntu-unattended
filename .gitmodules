@@ -1,0 +1,3 @@
+[submodule "vsk"]
+	path = vsk
+	url = https://github.com/donaldsteele/virtualbox-send-keys
