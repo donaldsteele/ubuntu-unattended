@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
+
 # file names & paths
 tmp="/tmp"  # destination folder to store the final iso file
 hostname="ubuntu"
 currentuser="$( whoami)"
 
+cp firstboot.sh $tmp/firstboot.sh
+cp netson.seed $tmp/netson.seed
 # define spinner function for slow tasks
 # courtesy of http://fitnr.com/showing-a-bash-spinner.html
 spinner()
@@ -121,7 +124,6 @@ printf "\n"
 read -sp " confirm your preferred password: " password2
 printf "\n"
 read -ep " Make ISO bootable via USB: " -i "yes" bootable
-read -ep " Install virtualbox guest additions: " -i "yes" vbox
 
 # check if the passwords match to prevent headaches
 if [[ "$password" != "$password2" ]]; then
@@ -196,26 +198,22 @@ cd $tmp/iso_new
 #doesn't work for 16.04
 echo en > $tmp/iso_new/isolinux/lang
 
+#copy the firstboot.sh script to the new cd
+cp $tmp/firstboot.sh $tmp/iso_new/firstboot.sh
+
 #16.04
 #taken from https://github.com/fries/prepare-ubuntu-unattended-install-iso/blob/master/make.sh
 sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' $tmp/iso_new/isolinux/isolinux.cfg
 
-if [[ $vbox == "yes" ]] || [[ $bootable == "y" ]]; then
-
-	# set late command
-	#adding first boot script to enable virtualbox guest additions
-	late_command="in-target wget --no-check-certificate -O /etc/rc.local.firstboot https://raw.githubusercontent.com/donaldsteele/ubuntu-unattended/master/rc.local.firstboot ;\
-	in-target chmod +x /etc/rc.local.firstboot ;\ 
-	in-target mv /etc/rc.local /etc/rc.local.orig;\ 
-	in-target ln -s /etc/rc.local /etc/rc.local.firstboot;"
-fi
 
 # copy the netson seed file to the iso
 cp -rT $tmp/$seed_file $tmp/iso_new/preseed/$seed_file
 
 # include firstrun script
+late_command="cp /cdrom/firstboot.sh /target/root/firstboot.sh && chroot /target chmod a+x /root/firstboot.sh && echo '@reboot root /bin/bash /root/firstboot.sh' >> /target/etc/crontab"
+
 echo "
-# setup firstrun script
+ setup firstrun script
 d-i preseed/late_command                                    string      $late_command" >> $tmp/iso_new/preseed/$seed_file
 
 # generate the password hash
